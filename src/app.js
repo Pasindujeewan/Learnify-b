@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import dotenv from "dotenv";
 
 const app = express();
+dotenv.config();
 // Middleware
 app.use(cors());
 app.use(express.json());
