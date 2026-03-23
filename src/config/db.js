@@ -1,11 +1,17 @@
 import { Pool } from "pg";
+import dotenv from "dotenv";
+dotenv.config();
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: "lms_db" || process.env.DB_NAME,
-  password: "pasindu" || process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  user: "postgres.eksoqhjhwhgehdmnhnmf", // ✅ correct
+  password: "Sadun20031120?", // ✅ raw password OK here
+  host: "aws-1-ap-northeast-2.pooler.supabase.com",
+  port: 6543,
+  database: "postgres",
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  family: 4,
 });
 
 export default pool;
