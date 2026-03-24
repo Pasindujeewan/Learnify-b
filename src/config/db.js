@@ -3,15 +3,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const pool = new Pool({
-  user: "postgres.eksoqhjhwhgehdmnhnmf", // ✅ correct
-  password: "Sadun20031120?", // ✅ raw password OK here
-  host: "aws-1-ap-northeast-2.pooler.supabase.com",
-  port: 6543,
-  database: "postgres",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  database: process.env.DB_NAME,
   ssl: {
     rejectUnauthorized: false,
   },
   family: 4,
+  pool_mode: "session",
 });
 
 export default pool;

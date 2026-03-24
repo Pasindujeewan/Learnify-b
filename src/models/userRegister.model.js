@@ -15,18 +15,19 @@ export const addUser = async (data) => {
     // Insert user and get the generated user_id
     const userResult = await client.query(query, values);
     const userId = userResult.rows[0].user_id;
+    const userEmail = userResult.rows[0].email;
     // Insert into role-specific table based on the user's role
     if (role === "instructor") {
-      const instructorQuery = `INSERT INTO instructors (user_id) VALUES ($1)`;
+      const instructorQuery = `INSERT INTO instructors (instructor_id) VALUES ($1)`;
       await client.query(instructorQuery, [userId]);
     }
     if (role === "student") {
-      const studentQuery = `INSERT INTO students (user_id) VALUES ($1)`;
+      const studentQuery = `INSERT INTO students (student_id) VALUES ($1)`;
       await client.query(studentQuery, [userId]);
     }
     // Commit the transaction
     await client.query("COMMIT");
-    return userId;
+    return { userId, userEmail };
   } catch (error) {
     // Rollback the transaction in case of any error
     console.error("Error registering user:", error);
