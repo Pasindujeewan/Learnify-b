@@ -8,11 +8,19 @@ export const registerUser = async (req, res) => {
       req.body;
     // Validate input
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        success: false,
+        code: "EMPTY_CREDENTIALS",
+        message: "Some credentials are empty ",
+      });
     }
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(409).json({ message: "Email already in use" });
+      return res.status(409).json({
+        success: false,
+        code: "USER_ALREADY_EXSIST",
+        message: "user already exsist",
+      });
     }
     // Hash the password before saving to the database
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -38,6 +46,10 @@ export const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Error registering user:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      code: "SERVER_ERROR",
+      message: "something going wrong in server",
+    });
   }
 };

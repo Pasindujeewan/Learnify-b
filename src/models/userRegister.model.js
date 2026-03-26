@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 export const addUser = async (data) => {
   // Use a single client for the entire transaction to ensure atomicity
-  console.log("models");
+
   const client = await pool.connect();
   try {
     // Destructure user data

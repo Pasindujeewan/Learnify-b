@@ -5,7 +5,7 @@ export const findUserByEmail = async (email) => {
       email,
     ]);
     if (rows.length === 0) {
-      return null;
+      console.error("no such user found");
     }
     return rows[0];
   } catch (error) {

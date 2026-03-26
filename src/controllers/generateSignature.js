@@ -5,7 +5,9 @@ export const generateSignature = (req, res) => {
   const { type } = req.body;
   if (!type || type !== "avatar") {
     return res.status(400).json({
-      message: "Invalid upload type",
+      success: false,
+      code: "SERVER_ERROR",
+      message: "something going wrong in server",
     });
   }
   // Generate a timestamp and signature for Cloudinary upload
