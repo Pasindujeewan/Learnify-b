@@ -1,31 +1,34 @@
-import { findUserByEmail } from "../models/findUser.js";
+import { findUserByEmail } from "../models/findUserByEmail.js";
 import bcrypt from "bcryptjs";
-import { addUser } from "../models/userRegister.model.js";
+import { registerUserModel } from "../models/userRegister.model.js";
 import { createToken } from "../middlewares/createToken.js";
-export const registerUser = async (req, res) => {
+import { AppError } from "../utils/AppError.js";
+
+export const registerUserController = async (req, res, next) => {
   try {
     const { name, email, password, avatar, role, description, contact } =
       req.body;
+
     // Validate input
     if (!name || !email || !password || !role) {
-      return res.status(400).json({
-        success: false,
-        code: "EMPTY_CREDENTIALS",
-        message: "Some credentials are empty ",
-      });
+      return next(
+        new AppError("Some credentials are empty", 400, "EMPTY_CREDENTIALS"),
+      );
     }
+
     const existingUser = await findUserByEmail(email);
+
     if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        code: "USER_ALREADY_EXSIST",
-        message: "user already exsist",
-      });
+      return next(
+        new AppError("user already exsist", 409, "USER_ALREADY_EXSIST"),
+      );
     }
+
     // Hash the password before saving to the database
     const hashedPassword = await bcrypt.hash(password, 10);
+
     // Register the user in the database
-    const { userID, userEmail } = await addUser({
+    const { userID, userEmail, Userrole } = await registerUserModel({
       name,
       email,
       password: hashedPassword,
@@ -34,22 +37,20 @@ export const registerUser = async (req, res) => {
       description,
       contact,
     });
-    const token = createToken({ userID, userEmail });
+
+    const token = createToken({ userID, userEmail, Userrole });
+
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
     res.status(201).json({
       userID,
       message: "User registered successfully",
     });
   } catch (error) {
-    console.error("Error registering user:", error);
-    return res.status(500).json({
-      success: false,
-      code: "SERVER_ERROR",
-      message: "something going wrong in server",
-    });
+    next(new AppError("Error registering user", 500, "REGISTER_FAILED"));
   }
 };

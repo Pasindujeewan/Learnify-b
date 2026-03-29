@@ -1,15 +1,20 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import dotenv from "dotenv";
-import pool from "./config/db.js";
-dotenv.config();
+import pool from "./config/dbConfig.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRouter from "./routes/protected.routes.js";
 import cookieParser from "cookie-parser";
-
+import { errorHandler } from "./middlewares/errorHandler.js";
+import { AppError } from "./utils/AppError.js";
 const app = express();
+import redis from "./config/redisConfig.js";
+
+await redis.set("test", "hello");
+const value = await redis.get("test");
+
+console.log(value); // hello
 
 // Middleware
 
@@ -33,7 +38,7 @@ async function checkDbConnection() {
     console.log("DB Connected at:", res.rows[0].now);
   } catch (err) {
     console.error("DB Connection Failed:", err.message);
-    process.exit(1); // stop app if DB fails (important)
+    process.exit(1);
   }
 }
 checkDbConnection();
@@ -42,12 +47,10 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
 
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+app.use((req, res, next) => {
+  next(new AppError("Route not found", 404, "NOT_FOUND"));
 });
 
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: "Server Error" });
-});
+app.use(errorHandler);
 
 export default app;
