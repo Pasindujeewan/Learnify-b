@@ -9,12 +9,6 @@ import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { AppError } from "./utils/AppError.js";
 const app = express();
-import redis from "./config/redisConfig.js";
-
-await redis.set("test", "hello");
-const value = await redis.get("test");
-
-console.log(value); // hello
 
 // Middleware
 

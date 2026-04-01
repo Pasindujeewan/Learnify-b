@@ -7,17 +7,90 @@ export const getUserProfile = async (user_id, role) => {
 
     if (role === "student") {
       query = `
-        SELECT u.*, s.*
-        FROM users u
-        JOIN student s ON u.user_id = s.user_id
-        WHERE u.user_id = $1
-      `;
+    SELECT  
+    u.user_id AS "userId", 
+    u.name,
+    u.email,
+    s.theme,
+    u.avatar,
+    u.role,
+    u.description,
+    u.contact,
+    u.created_at,
+
+    -- Courses JSON
+    COALESCE(
+        json_agg(
+            DISTINCT jsonb_build_object(
+                'course_id', c.course_id,
+                'title', c.title,
+                'description', c.description,
+                'category', c.category,
+                'level', c.level,
+                'duration', c.duration,
+                'price', c.price,
+                'language', c.language,
+                'rating', c.rating,
+                'image', c.image
+            )
+        ) FILTER (WHERE c.course_id IS NOT NULL),
+        '[]'
+    ) AS courses
+FROM users u
+JOIN students s 
+    ON u.user_id = s.student_id
+LEFT JOIN enrollments e 
+    ON u.user_id = e.student_id
+LEFT JOIN courses c 
+    ON e.course_id = c.course_id
+WHERE u.user_id = $1
+GROUP BY 
+    u.user_id, u.name, u.email, s.theme;
+
+ `;
     } else if (role === "instructor") {
       query = `
-        SELECT u.*, i.*
-        FROM users u
-        JOIN instructor i ON u.user_id = i.user_id
-        WHERE u.user_id = $1
+    SELECT 
+    u.user_id AS "userId",
+    u.name,
+    u.email,
+    u.avatar,
+    u.role,
+    u.description,
+    u.contact,
+    u.created_at,
+
+    i.instructor_id,
+    i.rating,
+    i.experience,
+    i.expertise,
+
+    COALESCE(
+        json_agg(
+            json_build_object(
+                'course_id', c.course_id,
+                'title', c.title,
+                'description', c.description,
+                'category', c.category,
+                'level', c.level,
+                'duration', c.duration,
+                'price', c.price,
+                'language', c.language,
+                'rating', c.rating,
+                'image', c.image
+            )
+        ) FILTER (WHERE c.course_id IS NOT NULL),
+        '[]'
+    ) AS courses
+FROM users u
+JOIN instructors i 
+    ON u.user_id = i.instructor_id
+LEFT JOIN courses c 
+    ON c.instructor_id = i.instructor_id
+WHERE u.user_id = $1
+    GROUP BY 
+    u.user_id,
+    i.instructor_id;
       `;
     } else {
       throw new AppError("Invalid role", 400, "INVALID_ROLE");
@@ -29,15 +102,10 @@ export const getUserProfile = async (user_id, role) => {
       throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }
 
-    return {
-      success: true,
-      message: "User profile fetched successfully",
-      data: rows[0],
-    };
+    return rows[0];
   } catch (error) {
     console.error("Error fetching user profile:", error);
 
-    // If already AppError  rethrow
     if (error instanceof AppError) {
       throw error;
     }
