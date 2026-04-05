@@ -26,8 +26,10 @@ app.use(helmet());
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the LMS API" });
 });
+console.log("Starting server and checking DB connection...");
 async function checkDbConnection() {
   try {
+    console.log("Checking database connection...");
     const res = await pool.query("SELECT NOW()");
     console.log("DB Connected at:", res.rows[0].now);
   } catch (err) {
@@ -36,7 +38,7 @@ async function checkDbConnection() {
   }
 }
 checkDbConnection();
-
+console.log("DB connection successful, starting server...");
 app.use("/api/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);

@@ -28,7 +28,7 @@ export const registerUserController = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Register the user in the database
-    const { userID, userEmail, Userrole } = await registerUserModel({
+    const { userId, userEmail, userRole } = await registerUserModel({
       name,
       email,
       password: hashedPassword,
@@ -38,16 +38,21 @@ export const registerUserController = async (req, res, next) => {
       contact,
     });
 
-    const token = createToken({ userID, userEmail, Userrole });
+    const token = createToken({
+      userId: userId,
+      userEmail: userEmail,
+      role: userRole,
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
+      secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({
-      userID,
+    return res.status(201).json({
+      userId,
       message: "User registered successfully",
     });
   } catch (error) {

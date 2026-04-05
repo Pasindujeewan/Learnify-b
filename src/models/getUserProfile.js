@@ -1,14 +1,16 @@
 import pool from "../config/dbConfig.js";
 import { AppError } from "../utils/AppError.js";
 
-export const getUserProfile = async (user_id, role) => {
+export const getUserProfile = async ({ user_id, role }) => {
   try {
     let query = "";
+    console.log("user_id:", user_id);
+    console.log("role:", role);
 
     if (role === "student") {
       query = `
-    SELECT  
-    u.user_id AS "userId", 
+    SELECT
+    u.user_id AS "userId",
     u.name,
     u.email,
     s.theme,
@@ -16,37 +18,35 @@ export const getUserProfile = async (user_id, role) => {
     u.role,
     u.description,
     u.contact,
-    u.created_at,
+  
 
-    -- Courses JSON
+    -- Courses JSON (correctly mapped with status)
     COALESCE(
-        json_agg(
-            DISTINCT jsonb_build_object(
-                'course_id', c.course_id,
-                'title', c.title,
-                'description', c.description,
-                'category', c.category,
-                'level', c.level,
-                'duration', c.duration,
-                'price', c.price,
-                'language', c.language,
-                'rating', c.rating,
-                'image', c.image
+        (
+            SELECT json_agg(
+                jsonb_build_object(
+                    'course_id', c.course_id,
+                    'title', c.title,
+                    'description', c.description,
+                    'category', c.category,
+                    'level', c.level,
+                    'duration', c.duration,
+                    'price', c.price,
+                    'language', c.language,
+                    'rating', c.rating,
+                    'image', c.image,
+                    'status', e.status
+                )
             )
-        ) FILTER (WHERE c.course_id IS NOT NULL),
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.course_id
+            WHERE e.student_id = u.user_id
+        ),
         '[]'
     ) AS courses
 FROM users u
-JOIN students s 
-    ON u.user_id = s.student_id
-LEFT JOIN enrollments e 
-    ON u.user_id = e.student_id
-LEFT JOIN courses c 
-    ON e.course_id = c.course_id
-WHERE u.user_id = $1
-GROUP BY 
-    u.user_id, u.name, u.email, s.theme;
-
+JOIN students s ON u.user_id = s.student_id
+WHERE u.user_id = $1;
  `;
     } else if (role === "instructor") {
       query = `
@@ -58,46 +58,45 @@ GROUP BY
     u.role,
     u.description,
     u.contact,
-    u.created_at,
+    
 
-    i.instructor_id,
     i.rating,
     i.experience,
     i.expertise,
 
     COALESCE(
-        json_agg(
-            json_build_object(
-                'course_id', c.course_id,
-                'title', c.title,
-                'description', c.description,
-                'category', c.category,
-                'level', c.level,
-                'duration', c.duration,
-                'price', c.price,
-                'language', c.language,
-                'rating', c.rating,
-                'image', c.image
+        (
+            SELECT json_agg(
+                jsonb_build_object(
+                    'course_id', c.course_id,
+                    'title', c.title,
+                    'description', c.description,
+                    'category', c.category,
+                    'level', c.level,
+                    'duration', c.duration,
+                    'price', c.price,
+                    'language', c.language,
+                    'rating', c.rating,
+                    'image', c.image,
+                    'createdAt', c.created_at
+                )
             )
-        ) FILTER (WHERE c.course_id IS NOT NULL),
+            FROM courses c
+            WHERE c.instructor_id = i.instructor_id
+        ),
         '[]'
     ) AS courses
+
 FROM users u
 JOIN instructors i 
     ON u.user_id = i.instructor_id
-LEFT JOIN courses c 
-    ON c.instructor_id = i.instructor_id
-WHERE u.user_id = $1
-    GROUP BY 
-    u.user_id,
-    i.instructor_id;
-      `;
+WHERE u.user_id = $1; `;
     } else {
       throw new AppError("Invalid role", 400, "INVALID_ROLE");
     }
 
     const { rows } = await pool.query(query, [user_id]);
-
+    console.log("Fetched user profile:", rows[0]);
     if (rows.length === 0) {
       throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }

@@ -1,10 +1,17 @@
 import cloudinary from "../config/cloudConfig.js";
 import { AppError } from "../utils/AppError.js";
+import dotenv from "dotenv";
 
 export const generateSignature = (req, res, next) => {
+  dotenv.config();
+  console.log("reqest is comming to signature");
   try {
     const { type } = req.body;
-
+    console.log("Upload type:", type);
+    console.log("Cloudinary config:", {
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+    });
     // validation error (client mistake)
     if (!type || type !== "avatar") {
       return next(
@@ -23,16 +30,17 @@ export const generateSignature = (req, res, next) => {
         timestamp,
         folder: "avatars",
       },
-      process.env.API_SECRET,
+      process.env.CLOUDINARY_API_SECRET,
     );
 
-    res.status(200).json({
+    console.log("here is signature", { timestamp, signature });
+    return res.status(200).json({
       success: true,
       data: {
         timestamp,
         signature,
-        apiKey: process.env.API_KEY,
-        cloudName: process.env.CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || "dldysu3pv",
       },
     });
   } catch (error) {
