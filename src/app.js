@@ -8,6 +8,8 @@ import userRouter from "./routes/protected.routes.js";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { AppError } from "./utils/AppError.js";
+import courseRouter from "./routes/course.routes.js";
+import studentRouter from "./routes/student.routes.js";
 const app = express();
 
 // Middleware
@@ -42,6 +44,8 @@ console.log("DB connection successful, starting server...");
 app.use("/api/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
+app.use("/api/courses", courseRouter);
+app.use("/api/students", studentRouter);
 
 app.use((req, res, next) => {
   next(new AppError("Route not found", 404, "NOT_FOUND"));

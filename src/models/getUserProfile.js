@@ -13,7 +13,7 @@ export const getUserProfile = async ({ user_id, role }) => {
     u.user_id AS "userId",
     u.name,
     u.email,
-    s.theme,
+    s.education_level,
     u.avatar,
     u.role,
     u.description,
@@ -34,7 +34,7 @@ export const getUserProfile = async ({ user_id, role }) => {
                     'price', c.price,
                     'language', c.language,
                     'rating', c.rating,
-                    'image', c.image,
+                    'image', c.image_url,
                     'status', e.status
                 )
             )
@@ -77,7 +77,7 @@ WHERE u.user_id = $1;
                     'price', c.price,
                     'language', c.language,
                     'rating', c.rating,
-                    'image', c.image,
+                    'image',c.image_url,
                     'createdAt', c.created_at
                 )
             )
