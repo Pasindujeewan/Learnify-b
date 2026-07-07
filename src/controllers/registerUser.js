@@ -9,7 +9,6 @@ export const registerUserController = async (req, res, next) => {
     const { name, email, password, avatar, role, description, contact } =
       req.body;
 
-    // Validate input
     if (!name || !email || !password || !role) {
       return next(
         new AppError("Some credentials are empty", 400, "EMPTY_CREDENTIALS"),
@@ -20,14 +19,12 @@ export const registerUserController = async (req, res, next) => {
 
     if (existingUser) {
       return next(
-        new AppError("user already exsist", 409, "USER_ALREADY_EXSIST"),
+        new AppError("User already exists", 409, "USER_ALREADY_EXISTS"),
       );
     }
 
-    // Hash the password before saving to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Register the user in the database
     const { userId, userEmail, userRole } = await registerUserModel({
       name,
       email,
@@ -47,13 +44,20 @@ export const registerUserController = async (req, res, next) => {
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res.status(201).json({
-      userId,
+      success: true,
       message: "User registered successfully",
+      user: {
+        userId,
+        email: userEmail,
+        role: userRole,
+        name,
+        avatar,
+      },
     });
   } catch (error) {
     next(new AppError("Error registering user", 500, "REGISTER_FAILED"));

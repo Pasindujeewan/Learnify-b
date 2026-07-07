@@ -4,19 +4,18 @@ import dotenv from "dotenv";
 
 export const generateSignature = (req, res, next) => {
   dotenv.config();
-  console.log("reqest is comming to signature");
   try {
     const { type } = req.body;
-    console.log("Upload type:", type);
-    console.log("Cloudinary config:", {
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.CLOUDINARY_API_KEY,
-    });
-    // validation error (client mistake)
-    if (!type || type !== "avatar") {
+    const folderByType = {
+      avatar: "avatars",
+      course: "courses",
+    };
+    const folder = folderByType[type];
+
+    if (!folder) {
       return next(
         new AppError(
-          "Invalid upload type. Only 'avatar' is allowed",
+          "Invalid upload type",
           400,
           "INVALID_UPLOAD_TYPE",
         ),
@@ -28,23 +27,22 @@ export const generateSignature = (req, res, next) => {
     const signature = cloudinary.utils.api_sign_request(
       {
         timestamp,
-        folder: "avatars",
+        folder,
       },
       process.env.CLOUDINARY_API_SECRET,
     );
 
-    console.log("here is signature", { timestamp, signature });
     return res.status(200).json({
       success: true,
       data: {
         timestamp,
         signature,
+        folder,
         apiKey: process.env.CLOUDINARY_API_KEY,
-        cloudName: process.env.CLOUDINARY_CLOUD_NAME || "dldysu3pv",
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       },
     });
   } catch (error) {
-    // unexpected errors
     next(
       new AppError(
         "Failed to generate Cloudinary signature",

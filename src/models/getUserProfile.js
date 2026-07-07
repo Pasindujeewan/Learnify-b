@@ -4,8 +4,6 @@ import { AppError } from "../utils/AppError.js";
 export const getUserProfile = async ({ user_id, role }) => {
   try {
     let query = "";
-    console.log("user_id:", user_id);
-    console.log("role:", role);
 
     if (role === "student") {
       query = `
@@ -34,12 +32,14 @@ export const getUserProfile = async ({ user_id, role }) => {
                     'price', c.price,
                     'language', c.language,
                     'rating', c.rating,
-                    'image', c.image_url,
+                    'imageUrl', c.image_url,
+                    'instructorName', instructor.name,
                     'status', e.status
                 )
             )
             FROM enrollments e
             JOIN courses c ON e.course_id = c.course_id
+            JOIN users instructor ON c.instructor_id = instructor.user_id
             WHERE e.student_id = u.user_id
         ),
         '[]'
@@ -77,7 +77,7 @@ WHERE u.user_id = $1;
                     'price', c.price,
                     'language', c.language,
                     'rating', c.rating,
-                    'image',c.image_url,
+                    'imageUrl', c.image_url,
                     'createdAt', c.created_at
                 )
             )
@@ -96,20 +96,15 @@ WHERE u.user_id = $1; `;
     }
 
     const { rows } = await pool.query(query, [user_id]);
-    console.log("Fetched user profile:", rows[0]);
     if (rows.length === 0) {
       throw new AppError("User not found", 404, "USER_NOT_FOUND");
     }
 
     return rows[0];
   } catch (error) {
-    console.error("Error fetching user profile:", error);
-
     if (error instanceof AppError) {
       throw error;
     }
-
-    // Unknown error  wrap
     throw new AppError("Internal server error", 500, "GET_PROFILE_FAILED");
   }
 };

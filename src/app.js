@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import pool from "./config/dbConfig.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRouter from "./routes/protected.routes.js";
@@ -10,7 +9,10 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import { AppError } from "./utils/AppError.js";
 import courseRouter from "./routes/course.routes.js";
 import studentRouter from "./routes/student.routes.js";
-import instructorRouter from "./routes/instructur.routes.js";
+import instructorRouter from "./routes/instructor.routes.js";
+
+
+// 👇 extract the function correctly
 const app = express();
 
 // Middleware
@@ -21,27 +23,18 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
-app.use(cookieParser());
 app.use(helmet());
+app.use(express.json({ limit: "2mb" }));
+app.use(cookieParser());
 
 // Routes
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to the LMS API" });
+  res.json({
+    message: "Learnify LMS API",
+    status: "online",
+  });
 });
-console.log("Starting server and checking DB connection...");
-async function checkDbConnection() {
-  try {
-    console.log("Checking database connection...");
-    const res = await pool.query("SELECT NOW()");
-    console.log("DB Connected at:", res.rows[0].now);
-  } catch (err) {
-    console.error("DB Connection Failed:", err.message);
-    process.exit(1);
-  }
-}
-checkDbConnection();
-console.log("DB connection successful, starting server...");
+
 app.use("/api/upload", uploadRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);

@@ -2,7 +2,6 @@ import { findUserByEmail } from "../models/findUserByEmail.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../middlewares/createToken.js";
 import { AppError } from "../utils/AppError.js";
-//Login controller
 export const loginUserController = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -36,14 +35,35 @@ export const loginUserController = async (req, res, next) => {
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(201).json({
-      message: "User Login successfully",
+    return res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      user: {
+        userId: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
     });
   } catch (error) {
     next(new AppError("Error logging in user", 500, "LOGIN_FAILED"));
   }
+};
+
+export const logoutUserController = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "User logged out successfully",
+  });
 };

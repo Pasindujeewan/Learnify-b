@@ -9,7 +9,6 @@ export const getCourseCommentsController = async (req, res, next) => {
       data: comments,
     });
   } catch (e) {
-    console.log("a error occur during get comments", e);
-    next(new AppError("A error occur during get comments", 500, "SEVER_ERROR"));
+    next(new AppError("Unable to load course comments", 500, "SERVER_ERROR"));
   }
 };

@@ -25,18 +25,14 @@ export const registerUserModel = async (data) => {
     const userId = userResult.rows[0].user_id;
     const userEmail = userResult.rows[0].email;
     const userRole = userResult.rows[0].role;
-    console.log("Registered user ID:", userId);
-    console.log("Registered user Email:", userEmail);
-    console.log("Registered user Role:", userRole);
-
     if (role === "instructor") {
-      const instructorQuery = `INSERT INTO instructors (instructor_id) VALUES ($1) RETURNING instructor_id`;
-      const instructorResult = await client.query(instructorQuery, [userId]);
+      const instructorQuery = `INSERT INTO instructors (instructor_id) VALUES ($1)`;
+      await client.query(instructorQuery, [userId]);
     }
 
     if (role === "student") {
-      const studentQuery = `INSERT INTO students (student_id) VALUES ($1) RETURNING student_id`;
-      const studentResult = await client.query(studentQuery, [userId]);
+      const studentQuery = `INSERT INTO students (student_id) VALUES ($1)`;
+      await client.query(studentQuery, [userId]);
     }
 
     await client.query("COMMIT");
@@ -47,7 +43,7 @@ export const registerUserModel = async (data) => {
 
     await client.query("ROLLBACK");
 
-    // If already AppError → rethrow
+    // Preserve expected domain errors and wrap unknown database failures.
     if (error instanceof AppError) {
       throw error;
     }
