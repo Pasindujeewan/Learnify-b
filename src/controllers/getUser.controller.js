@@ -6,6 +6,7 @@ export const getUserController = async (req, res, next) => {
   const userRole = req.user.role;
 
   try {
+    // The JWT role selects which profile shape the frontend should receive.
     const user = await getUserProfile({ user_id: userId, role: userRole });
 
     return res.status(200).json({

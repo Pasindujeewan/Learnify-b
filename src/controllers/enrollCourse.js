@@ -3,6 +3,7 @@ import { enrollCourseModel } from "../models/enrollCourse.js";
 export const enrollCourse = async (req, res, next) => {
   try {
     const courseId = req.params.courseId;
+    // Students enroll as themselves; the user id always comes from verifyToken.
     const userId = req.user.userId;
     const enrollment = await enrollCourseModel({ courseId, userId });
 
@@ -12,6 +13,10 @@ export const enrollCourse = async (req, res, next) => {
       data: enrollment,
     });
   } catch (error) {
-    next(new AppError("Failed to enroll in course", 500, "ERROR_OCCURED"));
+    if (error instanceof AppError) {
+      return next(error);
+    }
+
+    next(new AppError("Failed to enroll in course", 500, "ENROLLMENT_FAILED"));
   }
 };

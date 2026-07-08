@@ -6,6 +6,7 @@ export const rateCourseController = async (req, res, next) => {
     const { rating, comment, courseId } = req.body;
     const userId = req.user.userId;
 
+    // Keep ratings normalized before they reach the SQL upsert.
     if (!courseId || !rating || Number(rating) < 1 || Number(rating) > 5) {
       return next(
         new AppError("Course and a rating from 1 to 5 are required", 400, "INVALID_RATING"),
@@ -23,7 +24,11 @@ export const rateCourseController = async (req, res, next) => {
       success: true,
       data: { id: ratingId },
     });
-  } catch (e) {
+  } catch (error) {
+    if (error instanceof AppError) {
+      return next(error);
+    }
+
     next(new AppError("Failed to rate course", 500, "RATING_FAILED"));
   }
 };

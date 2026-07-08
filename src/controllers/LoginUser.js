@@ -32,6 +32,7 @@ export const loginUserController = async (req, res, next) => {
       role: user.role,
     });
 
+    // Keep JWT out of localStorage to reduce exposure to client-side scripts.
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
@@ -51,11 +52,16 @@ export const loginUserController = async (req, res, next) => {
       },
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      return next(error);
+    }
+
     next(new AppError("Error logging in user", 500, "LOGIN_FAILED"));
   }
 };
 
 export const logoutUserController = (req, res) => {
+  // Clearing the token cookie is enough because auth is cookie/JWT based.
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "lax",

@@ -21,6 +21,7 @@ export const getCourses = async ({ limit = 24, search = "", category = "" } = {}
   const values = [];
   const where = [];
 
+  // Build parameterized filters so search/category can be optional without SQL injection.
   if (search) {
     values.push(`%${search}%`);
     where.push(`(c.title ILIKE $${values.length} OR c.description ILIKE $${values.length})`);
@@ -99,6 +100,7 @@ export const createCourse = async (courseData) => {
 
 export const getCourseWithStudents = async (courseId, instructorId = null) => {
   const values = [courseId];
+  // When instructorId is passed, the query doubles as an ownership check.
   const ownerFilter = instructorId ? "AND c.instructor_id = $2" : "";
 
   if (instructorId) {

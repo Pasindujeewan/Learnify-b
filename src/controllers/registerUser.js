@@ -23,8 +23,10 @@ export const registerUserController = async (req, res, next) => {
       );
     }
 
+    // Store only the hashed password; the raw password never leaves this request.
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // User creation also creates the matching student/instructor profile row.
     const { userId, userEmail, userRole } = await registerUserModel({
       name,
       email,
@@ -41,6 +43,7 @@ export const registerUserController = async (req, res, next) => {
       role: userRole,
     });
 
+    // The frontend authenticates future requests through this HTTP-only cookie.
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
@@ -60,6 +63,10 @@ export const registerUserController = async (req, res, next) => {
       },
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      return next(error);
+    }
+
     next(new AppError("Error registering user", 500, "REGISTER_FAILED"));
   }
 };

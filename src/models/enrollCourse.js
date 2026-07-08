@@ -2,6 +2,7 @@ import { AppError } from "../utils/AppError.js";
 import pool from "../config/dbConfig.js";
 export const enrollCourseModel = async ({ courseId, userId }) => {
   try {
+    // Enrolling is idempotent: clicking the button again keeps the existing row.
     const { rows } = await pool.query(
       `
         INSERT INTO enrollments (course_id, student_id, status)
@@ -15,6 +16,6 @@ export const enrollCourseModel = async ({ courseId, userId }) => {
 
     return rows[0];
   } catch (error) {
-    throw new AppError("Failed to enroll in course", 500, "ERROR_OCCURED");
+    throw new AppError("Failed to enroll in course", 500, "ENROLLMENT_FAILED");
   }
 };

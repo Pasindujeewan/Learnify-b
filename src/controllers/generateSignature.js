@@ -6,6 +6,7 @@ export const generateSignature = (req, res, next) => {
   dotenv.config();
   try {
     const { type } = req.body;
+    // Upload types map to separate Cloudinary folders to keep assets organized.
     const folderByType = {
       avatar: "avatars",
       course: "courses",
@@ -24,6 +25,7 @@ export const generateSignature = (req, res, next) => {
 
     const timestamp = Math.round(Date.now() / 1000);
 
+    // The browser uploads directly to Cloudinary using this short-lived signature.
     const signature = cloudinary.utils.api_sign_request(
       {
         timestamp,

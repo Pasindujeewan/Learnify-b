@@ -7,6 +7,7 @@ export const rateCourseModel = async ({
   userId,
 }) => {
   try {
+    // Each student can keep one review per course; submitting again updates it.
     const query = `INSERT INTO courses_ratings (course_id, student_id, rating, comment)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT (course_id, student_id)
@@ -20,7 +21,6 @@ DO UPDATE SET
     }
     return result.rows[0].id;
   } catch (e) {
-    console.error("Error in rateCourseModel:", e);
     throw new AppError("Failed to rate course", 500, "RATING_FAILED");
   }
 };

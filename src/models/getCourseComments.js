@@ -2,6 +2,7 @@ import { AppError } from "../utils/AppError.js";
 import pool from "../config/dbConfig.js";
 export const getCourseCommentsModel = async (courseId) => {
   try {
+    // Comments are joined with user display data for the public course detail page.
     const query = `select  r.comment as "comment", u.name as "studentName", u.avatar as "studentAvatar" ,r.id as "commentId" 
 from courses_ratings r
 join users u on r.student_id = u.user_id

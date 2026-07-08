@@ -8,6 +8,7 @@ export const errorHandler = (err, req, res, next) => {
     message: err.message || "Internal Server Error",
     code: err.code || "SERVER_ERROR",
 
+    // Stack traces are helpful locally but should not leak from production APIs.
     ...(process.env.NODE_ENV === "development" && {
       stack: err.stack,
     }),

@@ -18,6 +18,7 @@ export const registerUserModel = async (data) => {
 
     const values = [name, email, password, avatar, role, description, contact];
 
+    // Create the base user and role profile together so registration never half-succeeds.
     await client.query("BEGIN");
 
     const userResult = await client.query(query, values);
@@ -39,8 +40,6 @@ export const registerUserModel = async (data) => {
 
     return { userId, userEmail, userRole };
   } catch (error) {
-    console.error("Error registering user: here ", error);
-
     await client.query("ROLLBACK");
 
     // Preserve expected domain errors and wrap unknown database failures.

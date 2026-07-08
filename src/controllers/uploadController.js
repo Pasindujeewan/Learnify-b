@@ -20,6 +20,7 @@ export const extractPdfSummary = async (req, res, next) => {
     const words = text ? text.split(/\s+/) : [];
     const readingMinutes = Math.max(1, Math.ceil(words.length / 200));
 
+    // Multer stores the file temporarily; remove it after parsing to keep uploads clean.
     await fs.unlink(req.file.path).catch(() => undefined);
 
     return res.status(200).json({
@@ -31,6 +32,10 @@ export const extractPdfSummary = async (req, res, next) => {
       },
     });
   } catch (error) {
+    if (req.file?.path) {
+      await fs.unlink(req.file.path).catch(() => undefined);
+    }
+
     next(new AppError("Failed to process PDF", 500, "PDF_PROCESSING_FAILED"));
   }
 };

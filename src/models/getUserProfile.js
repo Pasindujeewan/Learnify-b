@@ -6,6 +6,7 @@ export const getUserProfile = async ({ user_id, role }) => {
     let query = "";
 
     if (role === "student") {
+      // Student dashboards need the profile plus enrolled course summaries in one request.
       query = `
     SELECT
     u.user_id AS "userId",
@@ -18,7 +19,6 @@ export const getUserProfile = async ({ user_id, role }) => {
     u.contact,
   
 
-    -- Courses JSON (correctly mapped with status)
     COALESCE(
         (
             SELECT json_agg(
@@ -49,6 +49,7 @@ JOIN students s ON u.user_id = s.student_id
 WHERE u.user_id = $1;
  `;
     } else if (role === "instructor") {
+      // Instructor dashboards include all owned courses so the frontend can render quickly.
       query = `
     SELECT 
     u.user_id AS "userId",

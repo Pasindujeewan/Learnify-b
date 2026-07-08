@@ -3,18 +3,16 @@ import { AppError } from "../utils/AppError.js";
 
 export const findUserByEmail = async (email) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
-
-    if (rows.length === 0) {
-      console.error("no such user found");
-    }
+    // Parameterized lookup is used by login and registration duplicate checks.
+    const { rows } = await pool.query(
+      `SELECT user_id, name, email, password, avatar, role
+       FROM users
+       WHERE email = $1`,
+      [email],
+    );
 
     return rows[0];
   } catch (error) {
-    console.error("Error finding user:", error);
-
     throw new AppError("Database query failed", 500, "DB_QUERY_ERROR");
   }
 };

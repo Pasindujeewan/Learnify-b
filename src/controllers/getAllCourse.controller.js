@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 
 export const getAllCoursesController = async (req, res, next) => {
   try {
+    // Limit keeps the public catalog response small enough for the course grid.
     const limit = parseInt(req.query.limit, 10) || 24;
     const courses = await getCoursesModel(limit);
     return res.status(200).json({
@@ -17,6 +18,7 @@ export const getAllCoursesController = async (req, res, next) => {
 
 export const getCourseController = async (req, res, next) => {
   try {
+    // Details are public; enrollment and lesson completion stay protected elsewhere.
     const course = await getCourseById(req.params.courseId);
 
     return res.status(200).json({

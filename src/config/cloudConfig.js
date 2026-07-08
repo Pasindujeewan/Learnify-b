@@ -3,6 +3,7 @@ import { AppError } from "../utils/AppError.js";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Cloudinary is required for course images and avatar uploads.
 if (
   !process.env.CLOUDINARY_CLOUD_NAME ||
   !process.env.CLOUDINARY_API_KEY ||
