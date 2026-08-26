@@ -14,6 +14,7 @@ export const enrollCourse = async (req, res, next) => {
     });
   } catch (error) {
     if (error instanceof AppError) {
+      console.error("Enrollment error:", error);
       return next(error);
     }
 
