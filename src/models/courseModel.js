@@ -17,19 +17,30 @@ const COURSE_SELECT = `
   u.name AS "instructorName"
 `;
 
-export const getCourses = async ({ limit = 24, search = "", category = "" } = {}) => {
+export const getCourses = async ({
+  limit = 24,
+  search = "",
+  categories = [],
+} = {}) => {
   const values = [];
   const where = [];
 
   // Build parameterized filters so search/category can be optional without SQL injection.
   if (search) {
     values.push(`%${search}%`);
-    where.push(`(c.title ILIKE $${values.length} OR c.description ILIKE $${values.length})`);
+    where.push(
+      `(c.title ILIKE $${values.length} OR c.description ILIKE $${values.length})`,
+    );
   }
 
-  if (category) {
-    values.push(category);
-    where.push(`c.category = $${values.length}`);
+  if (categories.length > 0) {
+    const placeholders = categories.map(
+      (_, index) => `$${values.length + index + 1}`,
+    );
+
+    values.push(...categories);
+
+    where.push(`c.category IN (${placeholders.join(", ")})`);
   }
 
   values.push(Number(limit) || 24);
@@ -92,7 +103,17 @@ export const createCourse = async (courseData) => {
       RETURNING course_id, title, description, price, instructor_id AS "instructorId",
         image_url AS "imageUrl", category, level, duration, language, rating, created_at AS "createdAt"
     `,
-    [title, description, price, instructorId, imageUrl, category, level, duration, language],
+    [
+      title,
+      description,
+      price,
+      instructorId,
+      imageUrl,
+      category,
+      level,
+      duration,
+      language,
+    ],
   );
 
   return rows[0];
