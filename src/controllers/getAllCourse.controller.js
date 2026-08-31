@@ -1,12 +1,12 @@
 import { getCourseById } from "../models/courseModel.js";
-import { getCoursesModel } from "../models/getCourses.model.js";
+import { getCourses } from "../models/courseModel.js";
 import { AppError } from "../utils/AppError.js";
 
 export const getAllCoursesController = async (req, res, next) => {
   try {
     // Limit keeps the public catalog response small enough for the course grid.
-    const limit = parseInt(req.query.limit, 10) || 24;
-    const courses = await getCoursesModel(limit);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 24, 24);
+    const courses = await getCourses(limit);
     return res.status(200).json({
       success: true,
       data: courses,
