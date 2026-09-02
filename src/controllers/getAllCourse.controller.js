@@ -10,11 +10,17 @@ export const getAllCoursesController = async (req, res, next) => {
       ? req.query.categories.split(",")
       : [];
     const search = req.query.search || "";
+    const page = parseInt(req.query.page, 10) || 1;
+    const offset = (page - 1) * limit;
+
     console.log("categories", categories);
-    const courses = await getCourses({ limit, search, categories });
+    const courses = await getCourses({ limit, search, categories, offset });
     return res.status(200).json({
       success: true,
       data: courses,
+      page,
+      limit,
+      hasMore: courses.length === limit,
     });
   } catch (error) {
     console.log(error);

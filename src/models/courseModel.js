@@ -21,6 +21,7 @@ export const getCourses = async ({
   limit = 24,
   search = "",
   categories = [],
+  offset = 0,
 } = {}) => {
   try {
     const values = [];
@@ -44,6 +45,7 @@ export const getCourses = async ({
       where.push(`c.category IN (${placeholders.join(", ")})`);
     }
 
+    values.push(offset);
     values.push(Number(limit) || 24);
     console.log(values, where);
     const query = `
@@ -55,6 +57,7 @@ export const getCourses = async ({
     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
     GROUP BY c.course_id, u.name
     ORDER BY c.created_at DESC NULLS LAST, c.course_id DESC
+    OFFSET $${values.length - 1}
     LIMIT $${values.length}
   `;
 
