@@ -17,10 +17,14 @@ export const getAllCoursesController = async (req, res, next) => {
     const courses = await getCourses({ limit, search, categories, offset });
     return res.status(200).json({
       success: true,
-      data: courses,
-      page,
-      limit,
-      hasMore: courses.length === limit,
+      data: {
+        items: courses,
+        pagination: {
+          page,
+          limit,
+          hasMore: courses.length === limit,
+        },
+      },
     });
   } catch (error) {
     console.log(error);
