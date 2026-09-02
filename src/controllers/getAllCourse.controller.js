@@ -6,12 +6,18 @@ export const getAllCoursesController = async (req, res, next) => {
   try {
     // Limit keeps the public catalog response small enough for the course grid.
     const limit = Math.min(parseInt(req.query.limit, 10) || 24, 24);
-    const courses = await getCourses(limit);
+    const categories = req.query.categories
+      ? req.query.categories.split(",")
+      : [];
+    const search = req.query.search || "";
+    console.log("categories", categories);
+    const courses = await getCourses({ limit, search, categories });
     return res.status(200).json({
       success: true,
       data: courses,
     });
   } catch (error) {
+    console.log(error);
     next(new AppError("Failed to fetch courses", 500, "COURSE_FETCH_ERROR"));
   }
 };

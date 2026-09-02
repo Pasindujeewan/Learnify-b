@@ -22,30 +22,31 @@ export const getCourses = async ({
   search = "",
   categories = [],
 } = {}) => {
-  const values = [];
-  const where = [];
+  try {
+    const values = [];
+    const where = [];
+    console.log(categories, search);
+    // Build parameterized filters so search/category can be optional without SQL injection.
+    if (search) {
+      values.push(`%${search}%`);
+      where.push(
+        `(c.title ILIKE $${values.length} OR c.description ILIKE $${values.length})`,
+      );
+    }
 
-  // Build parameterized filters so search/category can be optional without SQL injection.
-  if (search) {
-    values.push(`%${search}%`);
-    where.push(
-      `(c.title ILIKE $${values.length} OR c.description ILIKE $${values.length})`,
-    );
-  }
+    if (categories.length > 0) {
+      const placeholders = categories.map(
+        (_, index) => `$${values.length + index + 1}`,
+      );
 
-  if (categories.length > 0) {
-    const placeholders = categories.map(
-      (_, index) => `$${values.length + index + 1}`,
-    );
+      values.push(...categories);
 
-    values.push(...categories);
+      where.push(`c.category IN (${placeholders.join(", ")})`);
+    }
 
-    where.push(`c.category IN (${placeholders.join(", ")})`);
-  }
-
-  values.push(Number(limit) || 24);
-
-  const query = `
+    values.push(Number(limit) || 24);
+    console.log(values, where);
+    const query = `
     SELECT ${COURSE_SELECT},
       COUNT(e.student_id)::int AS "enrolledCount"
     FROM courses c
@@ -57,8 +58,11 @@ export const getCourses = async ({
     LIMIT $${values.length}
   `;
 
-  const { rows } = await pool.query(query, values);
-  return rows;
+    const { rows } = await pool.query(query, values);
+    return rows;
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 export const getCourseById = async (courseId) => {
