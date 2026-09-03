@@ -12,9 +12,16 @@ export const getAllCoursesController = async (req, res, next) => {
     const search = req.query.search || "";
     const page = parseInt(req.query.page, 10) || 1;
     const offset = (page - 1) * limit;
+    const sort = req.query.sort || "createdAt";
 
     console.log("categories", categories);
-    const courses = await getCourses({ limit, search, categories, offset });
+    const courses = await getCourses({
+      limit,
+      search,
+      categories,
+      offset,
+      sort,
+    });
     return res.status(200).json({
       success: true,
       data: {

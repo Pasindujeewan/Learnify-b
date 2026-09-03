@@ -22,6 +22,7 @@ export const getCourses = async ({
   search = "",
   categories = [],
   offset = 0,
+  sort = "createdAt",
 } = {}) => {
   try {
     const values = [];
@@ -45,6 +46,44 @@ export const getCourses = async ({
       where.push(`c.category IN (${placeholders.join(", ")})`);
     }
 
+    if (sort) {
+      const validSortFields = [
+        "popular",
+        "price low to high",
+        "price high to low",
+        "highestRated",
+        "newest",
+        "oldest",
+      ];
+      if (!validSortFields.includes(sort)) {
+        throw new AppError("Invalid sort field", 400, "INVALID_SORT_FIELD");
+      }
+      let shortQuery = "";
+      switch (sort) {
+        case "popular":
+          shortQuery = "enrolledCount DESC";
+          break;
+        case "price low to high":
+          shortQuery = "c.price ASC";
+          break;
+        case "price high to low":
+          shortQuery = "c.price DESC";
+          break;
+        case "highestRated":
+          shortQuery = "c.rating DESC";
+          break;
+        case "newest":
+          shortQuery = "c.created_at DESC";
+          break;
+        case "oldest":
+          shortQuery = "c.created_at ASC";
+          break;
+      }
+      if (shortQuery) {
+        shortQuery += ", c.course_id DESC";
+      }
+    }
+
     values.push(offset);
     values.push(Number(limit) || 24);
     console.log(values, where);
@@ -56,7 +95,7 @@ export const getCourses = async ({
     LEFT JOIN enrollments e ON e.course_id = c.course_id
     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
     GROUP BY c.course_id, u.name
-    ORDER BY c.created_at DESC NULLS LAST, c.course_id DESC
+    ORDER BY ${shortQuery || "c.created_at DESC NULLS LAST, c.course_id DESC"}
     OFFSET $${values.length - 1}
     LIMIT $${values.length}
   `;
