@@ -14,7 +14,7 @@ export const getAllCoursesController = async (req, res, next) => {
     const offset = (page - 1) * limit;
     const sort = req.query.sort || "createdAt";
 
-    console.log("categories", categories);
+    console.log("sort", sort);
     const courses = await getCourses({
       limit,
       search,

@@ -45,9 +45,11 @@ export const getCourses = async ({
 
       where.push(`c.category IN (${placeholders.join(", ")})`);
     }
+    let shortQuery = "";
 
     if (sort) {
       const validSortFields = [
+        "createdAt",
         "popular",
         "price low to high",
         "price high to low",
@@ -58,10 +60,10 @@ export const getCourses = async ({
       if (!validSortFields.includes(sort)) {
         throw new AppError("Invalid sort field", 400, "INVALID_SORT_FIELD");
       }
-      let shortQuery = "";
+
       switch (sort) {
         case "popular":
-          shortQuery = "enrolledCount DESC";
+          shortQuery = '"enrolledCount" DESC';
           break;
         case "price low to high":
           shortQuery = "c.price ASC";
