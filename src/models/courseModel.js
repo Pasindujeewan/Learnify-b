@@ -27,7 +27,6 @@ export const getCourses = async ({
   try {
     const values = [];
     const where = [];
-    console.log(categories, search);
     // Build parameterized filters so search/category can be optional without SQL injection.
     if (search) {
       values.push(`%${search}%`);
